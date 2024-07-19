@@ -14,13 +14,27 @@ def extract_xyz_bank(file):
         temp_file_path = tmp_file.name
     
     # Use the temporary file path with camelot
-    tables = camelot.read_pdf(temp_file_path, flavor="stream", pages="3", row_tol=15, strip_text='\n')
-    tempDf = tables[0].df
-    columns_list = tempDf.iloc[1]
-    df1 = tempDf.rename(columns=columns_list).drop(tempDf.index[0]).reset_index(drop=True)
-    df1 = df1.drop(df1.index[0]).reset_index(drop=True)
-    df1 = df1[['Post Date','Value Date','Particular','Debit','Credit','Balance']]
-    return df1
+    tables = camelot.read_pdf(temp_file_path, flavor="stream", pages="all", row_tol=15, strip_text='\n')
+    
+    # Initialize an empty list to store DataFrames from each page
+    dfs = []
+    
+    for table in tables:
+        tempDf = table.df
+        if len(tempDf) > 1:  # Check if the table has more than one row
+            columns_list = tempDf.iloc[1]
+            df = tempDf.rename(columns=columns_list).drop(tempDf.index[0]).reset_index(drop=True)
+            df = df.drop(df.index[0]).reset_index(drop=True)
+            if 'Post Date' in df.columns and 'Value Date' in df.columns:
+                df = df[['Post Date','Value Date','Particular','Debit','Credit','Balance']]
+                dfs.append(df)
+    
+    # Concatenate all DataFrames
+    if dfs:
+        final_df = pd.concat(dfs, ignore_index=True)
+        return final_df
+    else:
+        return pd.DataFrame()
 
 def extract_yzx_bank(file):
     # Save the uploaded file to a temporary file
