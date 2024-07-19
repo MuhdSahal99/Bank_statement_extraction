@@ -39,13 +39,10 @@ def extract_yzx_bank(file):
     return df1
 
 def extract_zyy_bank(file):
-    # Save the uploaded file to a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-        tmp_file.write(file.read())
-        temp_file_path = tmp_file.name
+    # Save the uploaded file to a temporary fil
 
     # Extract account number and tables from the temporary file
-    account_number, tables = extract_tables_from_pdf(temp_file_path)
+    account_number, tables = extract_tables_from_pdf(file)
     if not tables:
         return None, None
 
@@ -83,10 +80,11 @@ bank_patterns = {
     "OAB Bank": r'Account:\s*(\d+)'  # This pattern is already defined
 }
 
-def extract_tables_from_pdf(pdf_path):
+def extract_tables_from_pdf(uploaded_file):
     account_number_pattern = r'Account:\s*(\d+)'  # Default pattern, adjust if needed
-    with pdfplumber.open(pdf_path) as pdf:
-        account_number = extract_account_number(pdf_path, account_number_pattern)
+    account_number = extract_account_number(uploaded_file, account_number_pattern)
+    
+    with pdfplumber.open(io.BytesIO(uploaded_file.getvalue())) as pdf:
         all_tables = []
         for page in pdf.pages:
             tables = page.extract_tables()
