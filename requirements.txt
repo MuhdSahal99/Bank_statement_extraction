@@ -1,0 +1,5 @@
+streamlit
+camelot-py
+pandas
+pdfplumber
+openpyxl
