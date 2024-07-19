@@ -3,3 +3,4 @@ camelot-py
 pandas
 pdfplumber
 openpyxl
+opencv-python
