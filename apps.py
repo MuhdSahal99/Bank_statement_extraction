@@ -57,8 +57,11 @@ def extract_zyy_bank(file):
     df = pd.DataFrame(all_data[1:], columns=all_data[0])
     return df, account_number
 
-def extract_account_number(file_path, patterns):
-    with pdfplumber.open(file_path) as pdf:
+def extract_account_number(uploaded_file, patterns):
+    if uploaded_file is None:
+        return None
+    
+    with pdfplumber.open(io.BytesIO(uploaded_file.getvalue())) as pdf:
         full_text = ''
         for page in pdf.pages:
             full_text += page.extract_text() + '\n'
@@ -117,17 +120,18 @@ bank_option = st.sidebar.selectbox(
 
 uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
 
-if uploaded_file:
-    if bank_option == "Bank Muscat":
-        df = extract_xyz_bank(uploaded_file)
-        patterns = bank_patterns[bank_option]
-        account_number = extract_account_number(uploaded_file.name, patterns)
-    elif bank_option == "Bank Dhofar":
-        df = extract_yzx_bank(uploaded_file)
-        pattern = bank_patterns[bank_option]
-        account_number = extract_account_number(uploaded_file.name, pattern)
-    elif bank_option == "OAB Bank":
-        df, account_number = extract_zyy_bank(uploaded_file)
+if uploaded_file is not None:
+    with st.spinner("Processing the PDF..."):
+        if bank_option == "Bank Muscat":
+            df = extract_xyz_bank(uploaded_file)
+            patterns = bank_patterns[bank_option]
+            account_number = extract_account_number(uploaded_file, patterns)
+        elif bank_option == "Bank Dhofar":
+            df = extract_yzx_bank(uploaded_file)
+            pattern = bank_patterns[bank_option]
+            account_number = extract_account_number(uploaded_file, pattern)
+        elif bank_option == "OAB Bank":
+            df, account_number = extract_zyy_bank(uploaded_file)
 
     if df is not None and not df.empty:
         if account_number:
